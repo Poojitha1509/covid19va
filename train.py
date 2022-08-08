@@ -5,11 +5,11 @@ import json
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-
+import nltk
 from nltk_utils import bag_of_words, tokenize, stem
 from model import NeuralNet
 
-with open('intents.json', 'r') as f:
+with open('pra.json', 'r', encoding='utf-8') as f:
     intents = json.load(f)
 
 all_words = []
@@ -27,9 +27,11 @@ for intent in intents['intents']:
         all_words.extend(w)
         # add to xy pair
         xy.append((w, tag))
-
 # stem and lower each word
-ignore_words = ['?', '.', '!']
+ignore_words = nltk.corpus.stopwords.words('english')
+new_words=('?',',','what','.','!')
+for i in new_words:
+    ignore_words.append(i)
 all_words = [stem(w) for w in all_words if w not in ignore_words]
 # remove duplicates and sort
 all_words = sorted(set(all_words))
@@ -99,8 +101,6 @@ for epoch in range(num_epochs):
         
         # Forward pass
         outputs = model(words)
-        # if y would be one-hot, we must apply
-        # labels = torch.max(labels, 1)[1]
         loss = criterion(outputs, labels)
         
         # Backward and optimize
